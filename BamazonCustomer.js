@@ -8,7 +8,7 @@ var connection = mysql.createConnection({
     user: "root", //Your username
     password: "jennaroe83?", //Your password
     database: "Bamazon"
-})
+});
 
 connection.connect(function(err){
 	if (err) {
@@ -36,12 +36,20 @@ connection.query('SELECT * from items', function(err, data){
 	})
 };
 
-var initialPrompt = function(){
+var initialPrompt = function(err, rows, fields){
  	inquirer.prompt([{
  		name: "Item",
  		type: "input",
- 		message: "Enter the Id of the Item you would like to Purchase"
-         }, {
+ 		message: "Enter the Id of the Item you would like to Purchase",
+ 			validate: function(value) {
+            if (isNaN(value) == false) {
+                return true;
+            } else {
+            	console.log("Please enter a valid Item Id")
+                return false;
+            	}
+        	}
+       }, {
 		name: "Quantity",
 		type: "input",
 		message: "How Many would you like Purchase?",
@@ -50,20 +58,47 @@ var initialPrompt = function(){
              if (isNaN(value) == false) {
                  return true;
              } else {
+             	console.log("Please enter a valid Quantity")
                 return false;
             	   }
         	 	}
-		}]).then(function(response){
-			console.log(response);
-			});
-};
-	
-// connection.query('SELECT ProductName from items', function(err, data){
-// 	if (err) throw err;
-// 	console.log(data);
-// });
+		}]).then(function(answers){
+  			connection.query('SELECT StockQuantity, Price FROM items WHERE ItemID=' + answers.Item, function(err, data, rows, fields){
 
-// connection.query('SELECT Price from items', function(err, data){
-// 	if (err) throw err;
-// 	console.log(data);
-// });
+   				if(err) throw err;
+
+   				var stock = parseInt(data[0].StockQuantity);
+   				var price = parseFloat(data[0].Price);
+   				var Qty = parseInt(answers.Quantity);
+
+   				if(stock >= Qty){
+
+   					var total = (Qty * price).toFixed(2);
+
+   					console.log("Order Total: $" + total);
+
+   					// stock = stock - Qty;
+
+   					var updateStock = stock - Qty;
+                    console.log("There are " + updateStock + " left in stock");
+                    console.log("Thank you for your Business");
+                    update(updateStock, answers.Item)
+
+   				} else if (stock < Qty){
+   					console.log("Sorry, not enough in stock to complete transaction");
+   				 	console.log("Please choose another Item")
+   				 	initialPrompt();
+   				 }
+
+	   })
+	})
+};
+connection.end();
+function update(stock, ItemID){
+     	connection.query('UPDATE items SET StockQuantity = ' + stock + ' WHERE ItemID = "' + ItemID+'"', function(err, rows, data){
+     		if (err) throw err;
+     	});
+     }
+
+	
+
