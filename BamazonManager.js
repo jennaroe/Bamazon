@@ -156,11 +156,7 @@ function update(stock, ItemID){
      };
 
 var newStock = function(){
-	inquirer.prompt([{
-		name: "ItemID",
-        type: "input",
-        message: "Please Insert an Item Id"
-    },  {  
+	inquirer.prompt([{ 
         name: "ProductName",
         type: "input",
         message: "What is the name of the Product?"
@@ -184,7 +180,8 @@ var newStock = function(){
             }
         }
     }]).then(function(answer) {
-        connection.query("INSERT INTO item ('ItemId', 'ProductName', 'DepartmentName', 'Price', 'StockQuantity') VALUES(?, ?, ?, ?)" [answer.ItemID, answer.ProductName, answer.DepartmentName, answer.Price, answer.Quantity], function(err, res) {
+        connection.query("INSERT INTO items (ProductName, DepartmentName, Price, StockQuantity) VALUES (?, ?, ?, ?)", [answer.ProductName, answer.DepartmentName, answer.Price, answer.Quantity], function(err, res) {
+        	if (err) throw err;
             console.log("Your item was added successfully!");
             startOver();
         });
