@@ -32,12 +32,12 @@ var start = function(){
 		message: "Please select an Activity: ",
 		choices: ['View Store Inventory', 'View Low Stock Items', 'Add to Inventory', 'Add New Items']
 	}]).then(function(choice) {
-
+		console.log(choice.Menu);
         switch(choice.Menu) {
             case 'View Store Inventory': 
                 stock();
                 break;
-            case 'View Low Stock':
+            case 'View Low Stock Items':
                 lowStock();
                 break;
             case 'Add to Inventory':
@@ -69,7 +69,7 @@ var stock = function (){
 };
 
 var lowStock = function(){
-	connection.query('SELECT * from items', function(err, data){
+	connection.query('SELECT * from items WHERE StockQuantity < 5', function(err, data){
 	if (err) throw err; 
 
 		console.log('');
@@ -81,13 +81,12 @@ var lowStock = function(){
 		// var inventory = data[i].StockQuantity;
 
 		for (var i = 0; i < data.length; i++) {
-			if (data[i].StockQuantity < 5) {
+			
     			console.log("itemID: " + data[i].ItemID + "|" + "ProductName: " + data[i].ProductName + "|" + "Quantity: " + data[i].StockQuantity + "|" + "\n");
-
-				};
-				startOver();
 			}
+			startOver();
 		})
+
 	}; 
 
 var addStock = function(){
@@ -185,13 +184,7 @@ var newStock = function(){
             }
         }
     }]).then(function(answer) {
-        connection.query("INSERT INTO items SET ?", {
-        	ItemID: answer.ItemID,
-            ProductName: answer.ProductName,
-            DepartmentName: answer.DepartmentName,
-            Price: answer.Price,
-            Quantity: answer.Quantity
-        }, function(err, res) {
+        connection.query("INSERT INTO item ('ItemId', 'ProductName', 'DepartmentName', 'Price', 'StockQuantity') VALUES(?, ?, ?, ?)" [answer.ItemID, answer.ProductName, answer.DepartmentName, answer.Price, answer.Quantity], function(err, res) {
             console.log("Your item was added successfully!");
             startOver();
         });
@@ -204,7 +197,7 @@ var startOver = function(){
 		message: "Would you like to complete another transaction?"
 	}]).then(function(answer){
 		if (answer.anotherItem == true){
-			initialPrompt();
+			start();
 		} else{
 			connection.end();
 			console.log('***************************************');
