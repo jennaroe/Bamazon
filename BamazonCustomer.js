@@ -1,12 +1,13 @@
 var mysql = require('mysql');
 var inquirer = require('inquirer');
 var prompt = require('prompt')
+// var Table = require('cli-table');
 
 var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
     user: "root", //Your username
-    password: "jennaroe83?", //Your password
+    password: "Testword123", //Your password
     database: "Bamazon"
 });
 
@@ -77,12 +78,13 @@ var initialPrompt = function(err, rows, fields){
 
    					console.log("Order Total: $" + total);
 
-   					// stock = stock - Qty;
 
    					var updateStock = stock - Qty;
                     console.log("There are " + updateStock + " left in stock");
                     console.log("Thank you for your Business");
-                    update(updateStock, answers.Item)
+                    update(updateStock, answers.Item);
+
+                    startOver();
 
    				} else if (stock < Qty){
    					console.log("Sorry, not enough in stock to complete transaction");
@@ -93,12 +95,28 @@ var initialPrompt = function(err, rows, fields){
 	   })
 	})
 };
-connection.end();
+
 function update(stock, ItemID){
      	connection.query('UPDATE items SET StockQuantity = ' + stock + ' WHERE ItemID = "' + ItemID+'"', function(err, rows, data){
      		if (err) throw err;
      	});
      }
 
-	
+var startOver = function(){
+	inquirer.prompt([{
+		name: "anotherItem",
+		type: "confirm",
+		message: "Would you like to purchase another Item?"
+	}]).then(function(answer){
+		if (answer.anotherItem == true){
+			initialPrompt();
+		} else{
+			connection.end();
+			console.log('***************************************');
+			console.log('Thank you for Shopping with Bamazon!')
+			console.log('Come Again Soon!!!')
+			console.log('***************************************');
+		}
+	})
+};
 
